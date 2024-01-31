@@ -1,0 +1,28 @@
+syntax = "proto3";
+
+option go_package = "proto/";
+
+package gossip;
+
+service Gossip {
+    rpc Update(UpdateMessage) returns (UpdateResponse);
+    rpc Feedback(FeedbackMessage) returns (FeedbackResponse);
+}
+
+message UpdateMessage {
+    optional string sender = 1;
+    optional string message_hash = 2;
+    optional string message_sender = 3;
+    optional string message_content = 4;
+    optional string message_timestamp = 5;
+}
+
+message UpdateResponse {
+}
+
+message FeedbackMessage {
+    optional string message_hash = 1;
+}
+
+message FeedbackResponse {
+}
