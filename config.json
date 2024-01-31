@@ -13,10 +13,6 @@
         {
             "ip": "localhost",
             "port": 5004
-        },
-        {
-            "ip": "localhost",
-            "port": 5005
         }
     ]
 }

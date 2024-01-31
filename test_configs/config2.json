@@ -1,0 +1,18 @@
+{
+    "ip": "localhost",
+    "port": 5002,
+    "peers": [
+        {
+            "ip": "localhost",
+            "port": 5001
+        },
+        {
+            "ip": "localhost",
+            "port": 5003
+        },
+        {
+            "ip": "localhost",
+            "port": 5004
+        }
+    ]
+}

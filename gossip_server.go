@@ -5,6 +5,7 @@ import (
 	"context"
 	"crypto/sha256"
 	"encoding/json"
+	"flag"
 	"fmt"
 	"io"
 	"log"
@@ -135,9 +136,9 @@ type ServerConfig struct {
 	Peers []Peer `json:"peers"`
 }
 
-func readServerConfig() (ServerConfig, error) {
+func readServerConfig(configFileName string) (ServerConfig, error) {
 	var serverConfig ServerConfig
-	configFile, err := os.Open("config.json")
+	configFile, err := os.Open(configFileName)
 	if err != nil {
 		log.Fatalln("Unable to open config file.")
 		return serverConfig, err
@@ -149,7 +150,10 @@ func readServerConfig() (ServerConfig, error) {
 }
 
 func main() {
-	serverConfig, err := readServerConfig()
+	configFile := flag.String("config_file", "config.json", "")
+	flag.Parse()
+
+	serverConfig, err := readServerConfig(*configFile)
 	if err != nil {
 		return
 	}
@@ -184,32 +188,33 @@ func main() {
 		}
 		defer conn.Close()
 		c := pb.NewGossipClient(conn)
+		fmt.Printf("Added peer %s\n", peerAddress)
 		sState.peers[peerAddress] = c
 	}
 
-	fmt.Println("Type help to get available commands.\n")
+	fmt.Println("Type help to get available commands.")
 	var line string
-	reader := bufio.NewReader(os.Stdin)
-	for {
-		fmt.Print(">> ")
-		line, _ = reader.ReadString('\n')
+	input := bufio.NewScanner(os.Stdin)
+
+	fmt.Print(">> ")
+	for input.Scan() {
+		line = input.Text()
 		splitLine := strings.Split(line, " ")
-		fmt.Println(line)
 		if len(splitLine) == 1 {
-			if line == "help" {
+			if splitLine[0] == "help" {
 				fmt.Println("Available commands:\n" +
 					"get-messages - print all messages\n" +
 					"send-message <message> - send a message to the network\n" +
 					"help - show available commands\n" +
-					"quit - stop the program\n")
-			} else if line == "send-message" {
-				fmt.Println("message cannot be empty\n")
-			} else if line == "quit" {
+					"quit - stop the program")
+			} else if splitLine[0] == "send-message" {
+				fmt.Println("message cannot be empty")
+			} else if splitLine[0] == "quit" {
 				break
-			} else if line == "get-messages" {
+			} else if splitLine[0] == "get-messages" {
 				fmt.Println(sState.messages)
 			} else {
-				fmt.Println("Unrecognized command.\n")
+				fmt.Println("Unrecognized command.")
 			}
 		} else {
 			if splitLine[0] == "send-message" {
@@ -223,8 +228,9 @@ func main() {
 				messageHash := fmt.Sprintf("%x", h.Sum(nil))
 				storeMessage(&sState, messageHash, m)
 			} else {
-				fmt.Println("Unrecognized command.\n")
+				fmt.Println("Unrecognized command.")
 			}
 		}
+		fmt.Print(">> ")
 	}
 }
