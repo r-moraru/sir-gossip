@@ -23,8 +23,9 @@ import (
 )
 
 type message struct {
-	sender  string
-	content string
+	sender    string
+	content   string
+	timestamp string
 }
 
 type serverState struct {
@@ -49,11 +50,13 @@ func dissemination_loop(s *serverState, messageHash string) {
 			MessageHash:    new(string),
 			MessageSender:  new(string),
 			MessageContent: new(string),
+			Timestamp:      new(string),
 		}
 		*updateMessage.Sender = s.serverId
 		*updateMessage.MessageHash = messageHash
 		*updateMessage.MessageSender = s.messages[messageHash].sender
 		*updateMessage.MessageContent = s.messages[messageHash].content
+		*updateMessage.Timestamp = s.messages[messageHash].timestamp
 
 		source := rand.NewSource(time.Now().UnixMicro())
 		rng := rand.New(source)
@@ -102,8 +105,9 @@ func (s *serverState) Update(context context.Context, request *pb.UpdateMessage)
 		sendFeedbackMessage(s.peers[request.GetSender()], request.GetMessageHash())
 	} else {
 		m := message{
-			sender:  request.GetMessageSender(),
-			content: request.GetMessageContent(),
+			sender:    request.GetMessageSender(),
+			content:   request.GetMessageContent(),
+			timestamp: request.GetTimestamp(),
 		}
 		storeMessage(s, request.GetMessageHash(), m)
 	}
@@ -220,11 +224,12 @@ func main() {
 			if splitLine[0] == "send-message" {
 				messageContent := line[strings.Index(line, " "):]
 				m := message{
-					sender:  sState.serverId,
-					content: messageContent,
+					sender:    sState.serverId,
+					content:   messageContent,
+					timestamp: time.Now().String(),
 				}
 				h := sha256.New()
-				h.Write([]byte(messageContent + sState.serverId))
+				h.Write([]byte(m.content + m.sender + m.timestamp))
 				messageHash := fmt.Sprintf("%x", h.Sum(nil))
 				storeMessage(&sState, messageHash, m)
 			} else {

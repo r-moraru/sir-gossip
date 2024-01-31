@@ -14,7 +14,7 @@ message UpdateMessage {
     optional string message_hash = 2;
     optional string message_sender = 3;
     optional string message_content = 4;
-    optional string message_timestamp = 5;
+    optional string timestamp = 5;
 }
 
 message UpdateResponse {
